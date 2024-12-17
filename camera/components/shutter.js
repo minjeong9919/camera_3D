@@ -1,27 +1,38 @@
 import * as THREE from "three";
+import { plastic } from "../texture/plastic.js";
 
 export const shutter = () => {
-	const buttonShape = new THREE.Shape();
-	const bodyMaterial = new THREE.MeshStandardMaterial({
-		color: "gray",
-		side: THREE.DoubleSide,
-	});
-	buttonShape.ellipse(0, 0, 0.2, 0.2);
+  const shutterGroup = new THREE.Group();
+  const plasticMaterial = plastic();
 
-	const extrudeSettings = {
-		depth: 0.1,
-		bevelEnabled: true,
-		steps: 13,
-		bevelSize: 0.06,
-		bevelThickness: 0.1,
-		bevelSegments: 7,
-	};
+  const radiusTop = 0.15;
+  const radiusBottom = 0.3;
+  const buttonBottomHeight = 0.1;
+  const buttonHeight = 0.3;
+  const radialSegment = 13;
+  const buttonBottomGeometry = new THREE.CylinderGeometry(
+    radiusTop,
+    radiusBottom,
+    buttonBottomHeight,
+    radialSegment
+  );
 
-	const geometry = new THREE.ExtrudeGeometry(buttonShape, extrudeSettings);
-	const mesh = new THREE.Mesh(geometry, bodyMaterial);
-	mesh.rotateX(Math.PI / 2);
-	mesh.position.y = 1.1;
-	mesh.position.x = -1;
+  const buttonBottom = new THREE.Mesh(buttonBottomGeometry, plasticMaterial);
+  buttonBottom.position.y = 1.03;
+  buttonBottom.position.x = -1.5;
+  shutterGroup.add(buttonBottom);
 
-	return mesh;
+  const buttonGeometry = new THREE.CylinderGeometry(
+    radiusTop,
+    radiusTop,
+    buttonHeight,
+    30
+  );
+
+  const button = new THREE.Mesh(buttonGeometry, plasticMaterial);
+  button.position.y = 1.04;
+  button.position.x = -1.5;
+  shutterGroup.add(button);
+
+  return shutterGroup;
 };

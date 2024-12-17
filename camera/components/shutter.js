@@ -33,6 +33,7 @@ export const shutter = () => {
   button.position.y = 1.04;
   button.position.x = -1.5;
   shutterGroup.add(button);
+  button.name = "shutter";
 
   return shutterGroup;
 };

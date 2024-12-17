@@ -20,6 +20,8 @@ window.onload = function () {
 
 class App {
   constructor() {
+    this.isAnimating = false;
+    this.shutterButton = null;
     const divContainer = document.querySelector("#webgl-container");
     this._divContainer = divContainer; // 다른 메서드에서 참조 가능하도록 하기 위함
 
@@ -36,6 +38,11 @@ class App {
     this._setupLight();
     this._setupModel();
     this._setupControls();
+    this._setupRaycaster();
+
+    window.onresize = this.resize.bind(this);
+    this.resize();
+    requestAnimationFrame(this.render.bind(this));
 
     document.querySelector("#export-button").addEventListener("click", () => {
       this._exportToGLTF();
@@ -99,6 +106,55 @@ class App {
 
     const SmallButton = smallButtons();
     camera.add(SmallButton);
+  }
+
+  _setupRaycaster() {
+    this.raycaster = new THREE.Raycaster();
+    this.pointer = new THREE.Vector2();
+
+    window.addEventListener("pointermove", this._onPointerMove.bind(this));
+    window.addEventListener("click", this._onClick.bind(this));
+  }
+
+  _onPointerMove(event) {
+    this.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  }
+
+  _animateShutter() {
+    const initialY = this.shutterButton.position.y;
+    const duration = 200;
+    const startTime = performance.now();
+
+    const animate = (currentTime) => {
+      const elapsed = currentTime - startTime;
+
+      if (elapsed <= duration) {
+        this.shutterButton.position.y =
+          initialY - 0.1 * Math.sin((elapsed / duration) * Math.PI);
+        requestAnimationFrame(animate);
+      } else {
+        this.shutterButton.position.y = initialY;
+        this.isAnimating = false;
+      }
+      this._renderer.render(this._scene, this._camera);
+    };
+
+    requestAnimationFrame(animate);
+  }
+
+  _onClick() {
+    this.raycaster.setFromCamera(this.pointer, this._camera);
+    const intersects = this.raycaster.intersectObjects(this._scene.children);
+
+    for (let i = 0; i < intersects.length; i++) {
+      const clickedObject = intersects[0].object;
+      if (clickedObject.name === "shutter" && !this.isAnimating) {
+        this.shutterButton = clickedObject;
+        this.isAnimating = true;
+        this._animateShutter();
+      }
+    }
   }
 
   _exportToGLTF() {

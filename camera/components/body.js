@@ -1,24 +1,14 @@
 import * as THREE from "three";
 import { createCylinderWidthRoundedEdge } from "../shapes/createCylinderWithRoundedEdge.js";
 import { metal } from "../texture/metal.js";
-import { env } from "../texture/env.js";
 
 export const body = () => {
   const group = new THREE.Group();
   const textureLoader = new THREE.TextureLoader();
 
   const bodyHeight = 2;
-  const metalMap = metal();
-  const envMap = env();
-  const bodyMaterial = new THREE.MeshStandardMaterial({
-    color: 0xdcdada,
-    side: THREE.DoubleSide,
-    metalness: 0.45,
-    roughness: 0.3,
-    flatShading: false,
-    envMap: envMap,
-    map: metalMap,
-  });
+  const metalMaterial = metal();
+
   const body = createCylinderWidthRoundedEdge(3, 0.5);
 
   const bodyExtrudeSettings = {
@@ -31,8 +21,8 @@ export const body = () => {
   };
 
   const bodyGeometry = new THREE.ExtrudeGeometry(body, bodyExtrudeSettings);
-  const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
-  bodyMesh.position.y = bodyHeight / 2 - 0.015;
+  const bodyMesh = new THREE.Mesh(bodyGeometry, metalMaterial);
+  bodyMesh.position.y = bodyHeight / 2;
   bodyMesh.rotation.x = Math.PI / 2;
   group.add(bodyMesh);
 
@@ -54,7 +44,7 @@ export const body = () => {
   const subBody = createCylinderWidthRoundedEdge(3.01, 0.501);
 
   const subBodyExtrudeSettings = {
-    depth: bodyHeight - 0.43,
+    depth: bodyHeight - 0.4,
     bevelEnabled: true,
     bevelSegments: 5,
     steps: 2,

@@ -133,6 +133,7 @@ class App {
   render(time) {
     this._renderer.render(this._scene, this._camera);
     this.update(time);
+    requestAnimationFrame(this.render.bind(this));
   }
 
   update(time) {

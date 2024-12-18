@@ -9,21 +9,10 @@ import { smallButtons } from "./components/smallButtons.js";
 import { body } from "./components/body.js";
 import { GLTFExporter } from "https://unpkg.com/three@0.138.0/examples/jsm/exporters/GLTFExporter.js";
 
-window.onload = function () {
-  const app = new App();
-
-  document.querySelector("#export-button").addEventListener("click", () => {
-    app._exportToGLTF();
-    console.log("내보내기 완료");
-  });
-};
-
 class App {
   constructor() {
-    this.isAnimating = false;
-    this.shutterButton = null;
     const divContainer = document.querySelector("#webgl-container");
-    this._divContainer = divContainer; // 다른 메서드에서 참조 가능하도록 하기 위함
+    this._divContainer = divContainer;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -38,7 +27,6 @@ class App {
     this._setupLight();
     this._setupModel();
     this._setupControls();
-    this._setupRaycaster();
 
     window.onresize = this.resize.bind(this);
     this.resize();
@@ -83,83 +71,40 @@ class App {
   }
 
   _setupModel() {
-    const camera = new THREE.Object3D();
-    this._scene.add(camera);
+    const Camera = new THREE.Object3D();
+    Camera.name = "camera";
+    this._scene.add(Camera);
 
     const Body = body(0.5, 0.1);
-    camera.add(Body);
+    Body.name = "body";
+    Camera.add(Body);
 
     const ViewFinder = viewFinder();
-    camera.add(ViewFinder);
+    ViewFinder.name = "view_finder";
+    Camera.add(ViewFinder);
 
-    const lensMesh = lens();
-    camera.add(lensMesh);
+    const Lens = lens();
+    Camera.add(Lens);
 
-    const buttonGeometry = shutter();
-    camera.add(buttonGeometry);
+    const Shutter = shutter();
+    Shutter.name = "shutter";
+    Camera.add(Shutter);
 
     const ImageViewer = imageViewer();
-    camera.add(ImageViewer);
+    ImageViewer.name = "image_viewer";
+    Camera.add(ImageViewer);
 
     const ImageSelector = imageSelector();
-    camera.add(ImageSelector);
+    ImageSelector.name = "image_selector";
+    Camera.add(ImageSelector);
 
     const SmallButton = smallButtons();
-    camera.add(SmallButton);
-  }
-
-  _setupRaycaster() {
-    this.raycaster = new THREE.Raycaster();
-    this.pointer = new THREE.Vector2();
-
-    window.addEventListener("pointermove", this._onPointerMove.bind(this));
-    window.addEventListener("click", this._onClick.bind(this));
-  }
-
-  _onPointerMove(event) {
-    this.pointer.x = (event.clientX / window.innerWidth) * 2 - 1;
-    this.pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  }
-
-  _animateShutter() {
-    const initialY = this.shutterButton.position.y;
-    const duration = 200;
-    const startTime = performance.now();
-
-    const animate = (currentTime) => {
-      const elapsed = currentTime - startTime;
-
-      if (elapsed <= duration) {
-        this.shutterButton.position.y =
-          initialY - 0.1 * Math.sin((elapsed / duration) * Math.PI);
-        requestAnimationFrame(animate);
-      } else {
-        this.shutterButton.position.y = initialY;
-        this.isAnimating = false;
-      }
-      this._renderer.render(this._scene, this._camera);
-    };
-
-    requestAnimationFrame(animate);
-  }
-
-  _onClick() {
-    this.raycaster.setFromCamera(this.pointer, this._camera);
-    const intersects = this.raycaster.intersectObjects(this._scene.children);
-
-    for (let i = 0; i < intersects.length; i++) {
-      const clickedObject = intersects[0].object;
-      if (clickedObject.name === "shutter" && !this.isAnimating) {
-        this.shutterButton = clickedObject;
-        this.isAnimating = true;
-        this._animateShutter();
-      }
-    }
+    SmallButton.name = "small_button";
+    Camera.add(SmallButton);
   }
 
   _exportToGLTF() {
     const exporter = new GLTFExporter();
-
     exporter.parse(
       this._scene,
       (gltf) => {
@@ -188,13 +133,10 @@ class App {
   render(time) {
     this._renderer.render(this._scene, this._camera);
     this.update(time);
-    requestAnimationFrame(this.render.bind(this));
   }
 
   update(time) {
     time *= 0.001;
-    // this._cube.rotation.x = time;
-    // this._cube.rotation.y = time;
   }
 }
 
